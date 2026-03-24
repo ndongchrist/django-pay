@@ -1,0 +1,76 @@
+{% extends "public/base.html" %}
+
+{% block content %}
+
+<!-- Hero Marketing Section -->
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-content">
+                    <div class="hero-badge">✦ ART OF THE TABLE ✦</div>
+                    <h1>Elevate Every Meal<br>With <span>Statement Dinnerware</span></h1>
+                    <p>Handcrafted porcelain, stoneware & luxury ceramic collections that transform dining into an experience. Trusted by Michelin-starred chefs and design lovers.</p>
+                    <div class="cta-group">
+                        <button class="btn-primary">Shop Now <i class="fas fa-arrow-right"></i></button>
+                        <button class="btn-outline">Explore Collections</button>
+                    </div>
+                    <div style="margin-top: 2rem; font-size: 0.8rem; display: flex; gap: 1.5rem;">
+                        <span><i class="fas fa-truck" style="color:var(--primary-yellow);"></i> Free shipping over $100</span>
+                        <span><i class="fas fa-undo-alt"></i> 30-day returns</span>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://placehold.co/600x500/F5F5F5/2C2C2C?text=Artisan+Plate+Set" alt="Premium ceramic plate collection" style="background:#E9E9E9; object-fit:cover;">
+                </div>
+            </div>
+        </section>
+
+        <div class="container">
+            <!-- Featured Products -->
+            <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap:wrap;">
+                <h2 class="section-title">Bestselling Collections</h2>
+                <a href="#" style="color:black; font-weight:600;">View all →</a>
+            </div>
+            <div class="featured-grid" id="products-grid">
+                <!-- product cards will be injected with JS, but we also provide static fallback -->
+            </div>
+
+            <!-- Marketing banner with yellow/black high impact -->
+            <div class="marketing-banner">
+                <div class="banner-text">
+                    <h2>Limited Edition: <span>Ochre Glaze</span> Series</h2>
+                    <p>Hand-finished with reactive yellow glaze — only 200 pieces worldwide. Elevate your tablescape with exclusive artisan craft.</p>
+                </div>
+                <button class="banner-btn">Pre-order now →</button>
+            </div>
+
+            <!-- Why choose us - trust & quality marketing -->
+            <h2 class="section-title">Why Chefs & Hosts Choose Platē</h2>
+            <div class="pillars">
+                <div class="pillar"><i class="fas fa-fire"></i><h4>High-Fired Durability</h4><p>Chip-resistant, microwave & dishwasher safe.</p></div>
+                <div class="pillar"><i class="fas fa-palette"></i><h4>Artisanal Design</h4><p>Each piece features unique reactive glaze finish.</p></div>
+                <div class="pillar"><i class="fas fa-leaf"></i><h4>Sustainable Craft</h4><p>Ethically made, low-emission production.</p></div>
+                <div class="pillar"><i class="fas fa-trophy"></i><h4>Award-Winning</h4><p>Red Dot Design Award 2024 winner.</p></div>
+            </div>
+
+            <!-- Professional Lifestyle Gallery (marketing visuals) -->
+            <div class="lifestyle">
+                <h2 class="section-title">As Seen In Inspired Interiors</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item"><img src="https://placehold.co/500x400/eeeeee/222222?text=Minimalist+Table+Setting" alt="Elegant table setting"></div>
+                    <div class="gallery-item"><img src="https://placehold.co/500x400/eeeeee/222222?text=Yellow+Accent+Dinnerware" alt="Yellow accent dinnerware"></div>
+                    <div class="gallery-item"><img src="https://placehold.co/500x400/eeeeee/222222?text=Professional+Kitchen+Styling" alt="Chef plating dish"></div>
+                </div>
+            </div>
+
+            <!-- Newsletter with strong call to action -->
+            <div class="newsletter">
+                <h3>Get 15% Off Your First Order</h3>
+                <p>Subscribe to receive exclusive offers, early access to new collections, and interior styling tips.</p>
+                <div class="news-form">
+                    <input type="email" placeholder="Your email address">
+                    <button>Subscribe →</button>
+                </div>
+            </div>
+        </div>
+
+{% endblock content %}
