@@ -1,6 +1,13 @@
 from django.shortcuts import render
 
+from food.models import Product
 
-# Create your views here.
+
 def home(request):
-    return render(request, "public/index.html")
+    # Only show active products that are in stock
+    products = Product.objects.filter(is_active=True, stock__gt=0).order_by("-id")[:8]
+
+    context = {
+        "products": products,
+    }
+    return render(request, "public/index.html", context)
