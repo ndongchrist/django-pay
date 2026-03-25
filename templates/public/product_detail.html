@@ -1,0 +1,118 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container" style="margin-top: 2rem;">
+
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 2rem; color: #666;">
+        <a href="{% url 'home' %}" style="color: inherit; text-decoration: none;">Home</a>
+        <span>›</span>
+        <a href="#" style="color: inherit; text-decoration: none;">Shop</a>
+        <span>›</span>
+        <strong style="color: #111;">{{ product.name }}</strong>
+    </div>
+
+    <div class="product-detail-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start;">
+        
+        <!-- LEFT: Large Product Image -->
+        <div class="product-image-large">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" 
+                     alt="{{ product.name }}"
+                     style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            {% else %}
+                <img src="https://placehold.co/800x800/111111/F5B81B?text={{ product.name|urlencode }}" 
+                     alt="{{ product.name }}"
+                     style="width: 100%; height: auto; border-radius: 12px;">
+            {% endif %}
+        </div>
+
+        <!-- RIGHT: Product Info -->
+        <div class="product-info-column">
+            <h1 style="font-size: 2.8rem; line-height: 1.1; margin-bottom: 0.5rem;">{{ product.name }}</h1>
+            
+            <div class="price" style="font-size: 2rem; font-weight: 700; color: #111; margin-bottom: 1.5rem;">
+                ${{ product.price }} <small style="font-weight:400; font-size:1rem;">USD</small>
+            </div>
+
+            {% if product.stock > 0 %}
+                <div style="display: inline-flex; align-items: center; background: #111; color: #F5B81B; padding: 6px 16px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; margin-bottom: 2rem;">
+                    <i class="fas fa-check-circle" style="margin-right: 6px;"></i>
+                    In stock • Ships in 1–2 days
+                </div>
+            {% else %}
+                <div style="color: #e74c3c; font-weight: 600;">Out of stock</div>
+            {% endif %}
+
+            <div class="full-description" style="line-height: 1.7; font-size: 1.1rem; color: #444; margin-bottom: 2.5rem;">
+                {{ product.description }}
+            </div>
+
+            <!-- Add to Cart -->
+            <button class="add-to-cart" 
+                    data-id="{{ product.id }}" 
+                    data-name="{{ product.name }}" 
+                    data-price="{{ product.price }}"
+                    data-image="{% if product.image %}{{ product.image.url }}{% else %}https://placehold.co/800x800/111111/F5B81B?text={{ product.name|urlencode }}{% endif %}"
+                    style="width: 100%; padding: 18px; font-size: 1.2rem; background: #111; color: #F5B81B; border: none; border-radius: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                <i class="fas fa-shopping-bag"></i>
+                ADD TO CART — FREE SHIPPING OVER $100
+            </button>
+
+            <!-- Trust signals -->
+            <div style="margin-top: 2rem; display: flex; gap: 2rem; flex-wrap: wrap; font-size: 0.95rem; color: #666;">
+                <span><i class="fas fa-truck"></i> Free shipping over $100</span>
+                <span><i class="fas fa-undo-alt"></i> 30-day returns</span>
+                <span><i class="fas fa-shield-alt"></i> Chip-resistant porcelain</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MEAL CONTEXT / LIFESTYLE SECTION -->
+    <div style="margin-top: 5rem;">
+        <h2 class="section-title" style="text-align: center;">Styled for Your Table</h2>
+        <p style="text-align: center; max-width: 600px; margin: 0 auto 2rem; color: #666;">
+            See how chefs and design lovers are using the {{ product.name }} in real meals
+        </p>
+        
+        <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+            <div class="gallery-item"><img src="https://placehold.co/600x400/eeeeee/222222?text=Minimal+Table+Setting+with+{{ product.name|urlencode }}" alt="Table setting" style="width:100%; border-radius: 12px;"></div>
+            <div class="gallery-item"><img src="https://placehold.co/600x400/eeeeee/222222?text=Ochre+Glaze+Meal+Plating" alt="Chef plating" style="width:100%; border-radius: 12px;"></div>
+            <div class="gallery-item"><img src="https://placehold.co/600x400/eeeeee/222222?text=Modern+Dinner+Party" alt="Dinner party" style="width:100%; border-radius: 12px;"></div>
+        </div>
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+    <div style="margin-top: 5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <h2 class="section-title">You May Also Love</h2>
+            <a href="#" style="color:#111; font-weight:600;">Browse all collections →</a>
+        </div>
+        
+        <div class="featured-grid" style="margin-top: 2rem;">
+            {% for rp in related_products %}
+                <!-- Reuse the exact same product-card structure from homepage -->
+                <div class="product-card" data-product-id="{{ rp.id }}">
+                    <a href="{% url 'product_detail' rp.id %}" class="product-image-link">
+                        <img class="product-img" src="{% if rp.image %}{{ rp.image.url }}{% else %}https://placehold.co/400x400/111111/F5B81B?text=No+Image{% endif %}" alt="{{ rp.name }}">
+                    </a>
+                    <div class="product-info">
+                        <a href="{% url 'product_detail' rp.id %}" class="product-title-link">
+                            <div class="product-title">{{ rp.name }}</div>
+                        </a>
+                        <div class="product-desc">{{ rp.description|truncatewords:12 }}</div>
+                        <div class="price">${{ rp.price }} <small>USD</small></div>
+                        <button class="add-to-cart" data-id="{{ rp.id }}" data-name="{{ rp.name }}" data-price="{{ rp.price }}">
+                            <i class="fas fa-shopping-bag"></i> Add to cart
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}

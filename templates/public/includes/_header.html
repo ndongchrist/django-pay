@@ -12,7 +12,22 @@
         </ul>
         <div class="header-icons">
             <i class="fas fa-search"></i>
-            <i class="fas fa-shopping-bag"></i>
+            
+            <!-- Cart Icon with Live Badge -->
+            <a href="{% url 'cart' %}" class="cart-icon" style="position: relative; text-decoration: none; color: inherit;">
+                <i class="fas fa-shopping-bag" style="font-size: 1.4rem;"></i>
+                <span id="cart-count-badge" 
+                    style="position: absolute; top: -4px; right: -4px; 
+                            background: #F5B81B; color: #111; 
+                            font-size: 0.75rem; font-weight: 700; 
+                            min-width: 18px; height: 18px; 
+                            border-radius: 50%; display: flex; 
+                            align-items: center; justify-content: center; 
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+                    0
+                </span>
+            </a>
+            
             <i class="fas fa-user"></i>
         </div>
     </div>

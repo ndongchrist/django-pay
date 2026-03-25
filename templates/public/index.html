@@ -42,18 +42,27 @@
         {% if products %}
             {% for product in products %}
             <div class="product-card" data-product-id="{{ product.id }}">
-                <img class="product-img" 
-                     src="{% if product.image %}{{ product.image.url }}{% else %}https://placehold.co/400x400/111111/F5B81B?text=No+Image{% endif %}" 
-                     alt="{{ product.name }}" 
-                     loading="lazy">
+                <!-- Clickable image -->
+                <a href="{% url 'product_detail' product.id %}" class="product-image-link">
+                    <img class="product-img" 
+                        src="{% if product.image %}{{ product.image.url }}{% else %}https://placehold.co/400x400/111111/F5B81B?text=No+Image{% endif %}" 
+                        alt="{{ product.name }}" 
+                        loading="lazy">
+                </a>
+                
                 <div class="product-info">
-                    <div class="product-title">{{ product.name }}</div>
+                    <!-- Clickable title -->
+                    <a href="{% url 'product_detail' product.id %}" class="product-title-link">
+                        <div class="product-title">{{ product.name }}</div>
+                    </a>
                     <div class="product-desc">{{ product.description|truncatewords:12 }}</div>
                     <div class="price">${{ product.price }} <small>USD</small></div>
+                    
                     <button class="add-to-cart" 
                             data-id="{{ product.id }}" 
                             data-name="{{ product.name }}" 
-                            data-price="{{ product.price }}">
+                            data-price="{{ product.price }}"
+                            data-image="{% if product.image %}{{ product.image.url }}{% else %}https://placehold.co/400x400/111111/F5B81B?text={{ product.name|urlencode }}{% endif %}">
                         <i class="fas fa-shopping-bag"></i> Add to cart
                     </button>
                 </div>

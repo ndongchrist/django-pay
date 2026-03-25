@@ -505,3 +505,12 @@
                 flex-direction: column;
             }
         }
+    .product-image-link, .product-title-link {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+    }
+    .product-image-link:hover img {
+        transform: scale(1.03);
+        transition: transform 0.3s ease;
+    }
