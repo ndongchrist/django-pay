@@ -132,7 +132,7 @@ function renderCartPage(cart) {
                 <i class="fas fa-shopping-bag" style="font-size:4rem; color:#ddd; margin-bottom:1rem;"></i>
                 <h3>Your basket is empty</h3>
                 <p style="color:#666; max-width:300px; margin:1rem auto;">When you add beautiful dinnerware, it will appear here.</p>
-                <a href="{% url 'home' %}" class="btn-primary" style="display:inline-block; margin-top:1rem;">Start Shopping</a>
+                <a href="/" class="btn-primary" style="display:inline-block; margin-top:1rem;">Start Shopping</a>
             </div>`;
         document.getElementById('cart-summary').style.display = 'none';
         return;
@@ -181,34 +181,10 @@ function renderCartPage(cart) {
 }
 
 function renderCheckoutPage(cart) {
-    const container = document.getElementById('checkout-items');
-    if (!container) return;
-
-    if (cart.length === 0) {
-        window.location.href = '{% url "cart" %}';
-        return;
-    }
-
-    let html = `<h3 style="margin-bottom:1.5rem;">Order Summary</h3>`;
-    cart.forEach(item => {
-        const subtotal = (item.price * item.quantity).toFixed(2);
-        html += `
-        <div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #eee;">
-            <div>
-                <strong>${item.name}</strong> × ${item.quantity}
-            </div>
-            <div>$${subtotal}</div>
-        </div>`;
-    });
-
-    const total = getCartTotal(cart);
-    html += `
-        <div style="margin-top:2rem; padding-top:1.5rem; border-top:2px solid #111; display:flex; justify-content:space-between; font-size:1.3rem; font-weight:700;">
-            <div>Total</div>
-            <div>$${total}</div>
-        </div>`;
-
-    container.innerHTML = html;
+    // We no longer rely on localStorage cart for checkout page
+    // The backend now provides real order data via Django template
+    // So we do nothing here - the template already renders the real order
+    console.log('%cCheckout page rendered via Django template', 'color:#F5B81B');
 }
 
 // ====================== INITIALIZATION ======================
@@ -232,4 +208,89 @@ document.addEventListener('DOMContentLoaded', function () {
     renderCurrentPage();
 
     console.log('%c✅ Platē Cart System initialized (Fixed Version)', 'color:#F5B81B; font-weight:700');
+});
+
+async function processCheckout() {
+    const cart = getCart();
+    if (cart.length === 0) {
+        showToast("Your cart is empty");
+        return;
+    }
+
+    const checkoutBtn = document.getElementById('proceed-checkout-btn');
+    if (checkoutBtn) checkoutBtn.disabled = true;
+
+    try {
+        const response = await fetch(PROCESS_CHECKOUT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')   // reuse your existing getCookie helper
+            },
+            body: JSON.stringify({ cart: cart })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showToast(`✅ Order #${result.order_id} created successfully! Total: $${result.total}`);
+
+            // Clear the frontend cart
+            localStorage.removeItem(CART_KEY);
+            updateHeaderBadge();
+
+            window.location.href = CHECKOUT_URL;
+        } else {
+            showToast(`Error: ${result.error || 'Failed to create order'}`);
+        }
+    } catch (error) {
+        console.error(error);
+        showToast("Network error. Please try again.");
+    } finally {
+        if (checkoutBtn) checkoutBtn.disabled = false;
+    }
+}
+
+// Helper: get CSRF token (add this if not already in scripts.js)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ====================== INITIALIZATION (Updated) ======================
+document.addEventListener('DOMContentLoaded', function () {
+    updateHeaderBadge();
+
+    // Add to Cart buttons
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id       = btn.getAttribute('data-id');
+            const name     = btn.getAttribute('data-name');
+            const price    = btn.getAttribute('data-price');
+            const imageUrl = btn.getAttribute('data-image');
+            addToCart(id, name, price, imageUrl);
+        });
+    });
+
+    // NEW: Checkout button listener
+    const checkoutBtn = document.getElementById('proceed-checkout-btn');
+    if (checkoutBtn) {
+        checkoutBtn.addEventListener('click', processCheckout);
+    }
+
+    // Render current page
+    renderCurrentPage();
+
+    console.log('%c✅ Platē Cart + Checkout System Ready', 'color:#F5B81B; font-weight:700');
 });
