@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+import os
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +28,7 @@ SECRET_KEY = "django-insecure-asg-w=1z*x=%545exg#a6$9xku%542h4cm2k#-*2&_&%w-!a*)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -125,3 +128,12 @@ STATICFILES_DIRS = [
 # MEDIA FILES (user uploads)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+load_dotenv()
+
+PAYUNIT_CONFIG = {
+    "apiUsername": os.getenv("PAYUNIT_API_USERNAME"),
+    "apiPassword": os.getenv("PAYUNIT_API_PASSWORD"),
+    "api_key": os.getenv("PAYUNIT_API_KEY"),
+    "mode": os.getenv("PAYUNIT_MODE", "test"),  # "test" or "live"
+}

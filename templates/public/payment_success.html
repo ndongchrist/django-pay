@@ -1,0 +1,56 @@
+{% extends "public/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="margin-top: 4rem; max-width: 800px; text-align: center;">
+
+    <div style="margin-bottom: 3rem;">
+        <i class="fas fa-check-circle" style="font-size: 6rem; color: #F5B81B;"></i>
+    </div>
+
+    <h1 style="font-size: 3rem; margin-bottom: 1rem; color: #111;">
+        Thank You!
+    </h1>
+    
+    <p style="font-size: 1.4rem; color: #444; margin-bottom: 2.5rem;">
+        Your payment was successful.<br>
+        Order <strong>#{{ order.id }}</strong> has been confirmed.
+    </p>
+
+    <div style="background: #f8f8f8; padding: 2.5rem; border-radius: 20px; margin-bottom: 3rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <span style="font-size: 1.1rem; color: #666;">Order Number</span>
+            <strong style="font-size: 1.3rem;">#{{ order.id }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <span style="font-size: 1.1rem; color: #666;">Total Paid</span>
+            <strong style="font-size: 1.4rem; color: #111;">${{ order.total_amount|floatformat:2 }} XAF</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 1.1rem; color: #666;">Payment Method</span>
+            <strong style="font-size: 1.1rem; color: #F5B81B;">PayUnit</strong>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 3rem;">
+        <p style="color: #666; line-height: 1.7;">
+            A confirmation email has been sent to your inbox.<br>
+            We are now preparing your premium dinnerware for shipment.
+        </p>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{% url 'home' %}" class="btn-primary" style="padding: 16px 36px; font-size: 1.1rem;">
+            Continue Shopping
+        </a>
+        <a href="{% url 'product_detail' order.id %}" class="btn-outline" style="padding: 16px 36px; font-size: 1.1rem;">
+            View Order Details
+        </a>
+    </div>
+
+    <div style="margin-top: 4rem; font-size: 0.95rem; color: #888;">
+        Need help? Contact us at <a href="mailto:support@platē.com" style="color:#F5B81B;">support@platē.com</a>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,11 +1,17 @@
 import json
+import uuid
+
 from django.shortcuts import render
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from payUnit import payUnit
+from .models import Order, Payment
+from django.conf import settings
 
 from food.enum import OrderStatus
-from food.models import Order, OrderItem, Product
+from food.models import Order, OrderItem, Product  # noqa: F811
 
 
 def home(request):
@@ -120,3 +126,91 @@ def process_checkout(request):
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except Exception as e:
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+def initiate_payunit_payment(request, order_id):
+    """Initiate PayUnit payment from checkout page"""
+    order = get_object_or_404(Order, id=order_id)
+
+    # Generate unique transaction_id
+    transaction_id = f"PLATE-{order.id}-{uuid.uuid4().hex[:8]}"
+
+    # For local development: Use ngrok (example below)
+    # Replace with your actual ngrok URL when running
+    base_url = (
+        "https://8813-2605-59c0-1e9e-a908-778c-c77f-9ce0-861d.ngrok-free.app"  # ← CHANGE THIS EVERY TIME NGROK RESTARTS
+    )
+
+    success_url = base_url + reverse("payunit_success", args=[order.id])
+    cancel_url = base_url + reverse("payunit_cancel", args=[order.id])  # noqa: E221 F841
+    notify_url = base_url + reverse("payunit_notify")  # noqa: E221
+
+    try:
+        payment = payUnit(
+            {
+                "apiUsername": settings.PAYUNIT_CONFIG["apiUsername"],
+                "apiPassword": settings.PAYUNIT_CONFIG["apiPassword"],
+                "api_key": settings.PAYUNIT_CONFIG["api_key"],
+                "return_url": success_url,  # PayUnit calls this after payment
+                "notify_url": notify_url,
+                "mode": settings.PAYUNIT_CONFIG["mode"],
+                "name": "Platē Studio",
+                "description": f"Order #{order.id} - Premium Dinnerware",
+                "purchaseRef": f"ORD-{transaction_id}",
+                "currency": "XAF",
+                "transaction_id": transaction_id,
+            }
+        )
+
+        # This will redirect the user to PayUnit payment page
+        response = payment.makePayment(float(order.total_amount))
+
+        # Save payment reference
+        Payment.objects.create(
+            order=order, method="payunit", amount=order.total_amount, transaction_id=transaction_id, status="pending"
+        )
+
+        # Update order with reference
+        order.payment_reference = transaction_id
+        order.save()
+
+        return redirect(response)  # redirect to PayUnit hosted page
+
+    except Exception as e:
+        return HttpResponse(f"Payment initiation failed: {str(e)}", status=500)
+
+
+@csrf_exempt
+def payunit_success(request, order_id):
+    """User lands here after successful payment"""
+    order = get_object_or_404(Order, id=order_id)
+
+    # Update status
+    order.status = OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID"
+    order.save()
+
+    # Optional: Update Payment model
+    payment = Payment.objects.filter(order=order, method="payunit").first()
+    if payment:
+        payment.status = "success"
+        payment.save()
+
+    context = {"order": order, "message": "Payment Successful! Thank you for your purchase."}
+    return render(request, "public/payment_success.html", context)
+
+
+@csrf_exempt
+def payunit_cancel(request, order_id):
+    """User cancelled the payment"""
+    order = get_object_or_404(Order, id=order_id)
+    context = {"order": order, "message": "Payment was cancelled. You can try again."}
+    return render(request, "public/payment_cancel.html", context)
+
+
+@csrf_exempt
+def payunit_notify(request):
+    """Webhook from PayUnit (recommended to verify status)"""
+    # PayUnit will POST here with payment result
+    # For now, just log it. You can improve later to verify via status API.
+    print("PayUnit Webhook received:", request.POST)
+    return HttpResponse("OK", status=200)
