@@ -4,7 +4,9 @@ from food.views import (
     cart_view,
     checkout_view,
     home,
+    initiate_moneroo_payment,
     initiate_payunit_payment,
+    moneroo_success,
     payunit_cancel,
     payunit_notify,
     payunit_success,
@@ -23,4 +25,7 @@ urlpatterns = [
     path("payunit/success/<int:order_id>/", payunit_success, name="payunit_success"),
     path("payunit/cancel/<int:order_id>/", payunit_cancel, name="payunit_cancel"),
     path("payunit/notify/", payunit_notify, name="payunit_notify"),
+    # moneroo related URLs
+    path("moneroo/initiate/<int:order_id>/", initiate_moneroo_payment, name="moneroo_initiate"),
+    path("moneroo/success/", moneroo_success, name="moneroo_success"),
 ]

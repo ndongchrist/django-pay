@@ -11,6 +11,7 @@ from .models import Order, Payment
 from django.conf import settings
 
 from food.enum import OrderStatus
+from .moneroo import MonerooPayment
 from food.models import Order, OrderItem, Product  # noqa: F811
 
 
@@ -214,3 +215,47 @@ def payunit_notify(request):
     # For now, just log it. You can improve later to verify via status API.
     print("PayUnit Webhook received:", request.POST)
     return HttpResponse("OK", status=200)
+
+
+def initiate_moneroo_payment(request, order_id):
+    """Initialize Moneroo payment"""
+    order = get_object_or_404(Order, id=order_id)
+
+    moneroo = MonerooPayment()
+    result = moneroo.initialize_payment(order, request)
+
+    if result["success"]:
+        return redirect(result["checkout_url"])
+    else:
+        return HttpResponse(f"Payment initialization failed: {result['error']}", status=400)
+
+
+def moneroo_success(request):
+    """Handle return from Moneroo after payment"""
+    order_id = request.GET.get("order_id")
+    payment_status = request.GET.get("paymentStatus")  # Moneroo usually sends this
+    payment_id = request.GET.get("paymentId")
+
+    order = get_object_or_404(Order, id=order_id)
+
+    # You should verify the payment status properly (via webhook or retrieve API)
+    # For now, we mark as paid if they returned from success flow
+    if payment_status and payment_status.lower() == "success":
+        order.status = OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID"
+        order.save()
+
+        # Optional: Create Payment record
+        from .models import Payment
+
+        Payment.objects.create(
+            order=order,
+            method="moneroo",
+            amount=order.total_amount,
+            status="success",
+            transaction_id=payment_id or order.payment_reference,
+        )
+
+        return render(request, "public/payment_success.html", {"order": order})
+
+    # If status is not clearly success, show cancel/failed page
+    return render(request, "public/payment_cancel.html", {"order": order})

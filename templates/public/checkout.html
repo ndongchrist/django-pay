@@ -33,6 +33,45 @@
                 <h3 style="margin-bottom:1.5rem;">Choose Payment Method</h3>
                 
                 <div style="background:#f8f8f8; padding:2rem; border-radius:16px;">
+                    
+                    <!-- PayUnit -->
+                    <label id="payunit-label" style="display:flex; align-items:center; gap:12px; padding:1rem; background:white; border-radius:12px; margin-bottom:1rem; cursor:pointer; border:2px solid #F5B81B;">
+                        <input type="radio" name="payment_method" value="payunit" checked style="accent-color:#F5B81B;">
+                        <div>
+                            <strong>PayUnit (Mobile Money & Cards)</strong><br>
+                            <small style="color:#666;">Orange Money, MTN MoMo, Visa, Mastercard</small>
+                        </div>
+                    </label>
+
+                    <!-- Moneroo -->
+                    <label id="moneroo-label" style="display:flex; align-items:center; gap:12px; padding:1rem; background:white; border-radius:12px; margin-bottom:1rem; cursor:pointer;">
+                        <input type="radio" name="payment_method" value="moneroo" style="accent-color:#F5B81B;">
+                        <div>
+                            <strong>Moneroo</strong><br>
+                            <small style="color:#666;">Mobile Money, Bank Transfer & more across Africa</small>
+                        </div>
+                    </label>
+
+                    <!-- Future methods (disabled) -->
+                    <div style="opacity:0.6;">
+                        <label style="display:flex; align-items:center; gap:12px; padding:1rem; background:white; border-radius:12px; margin-bottom:1rem; cursor:not-allowed;">
+                            <input type="radio" name="payment_method" disabled>
+                            <div>
+                                <strong>Stripe (Coming Soon)</strong>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button onclick="initiatePayment({{ order.id }})" 
+                            id="pay-button"
+                            style="width:100%; margin-top:2rem; padding:18px; background:#111; color:#F5B81B; border:none; border-radius:60px; font-weight:700; font-size:1.2rem;">
+                        Pay Now →
+                    </button>
+                </div>
+            </div><div>
+                <h3 style="margin-bottom:1.5rem;">Choose Payment Method</h3>
+                
+                <div style="background:#f8f8f8; padding:2rem; border-radius:16px;">
                     <!-- PayUnit Option -->
                     <label style="display:flex; align-items:center; gap:12px; padding:1rem; background:white; border-radius:12px; margin-bottom:1rem; cursor:pointer; border:2px solid #F5B81B;">
                         <input type="radio" name="payment_method" value="payunit" checked style="accent-color:#F5B81B;">
@@ -74,10 +113,26 @@
 <script>
 function initiatePayment(orderId) {
     const btn = document.getElementById('pay-button');
-    btn.disabled = true;
-    btn.textContent = "Redirecting to PayUnit...";
+    const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
     
-    window.location.href = "{% url 'payunit_initiate' 0 %}".replace('0', orderId);
+    btn.disabled = true;
+    btn.textContent = "Redirecting to payment gateway...";
+
+    let url = "";
+
+    if (selectedMethod === "payunit") {
+        url = "{% url 'payunit_initiate' 0 %}".replace('0', orderId);
+    } else if (selectedMethod === "moneroo") {
+        url = "{% url 'moneroo_initiate' 0 %}".replace('0', orderId);
+    }
+
+    if (url) {
+        window.location.href = url;
+    } else {
+        btn.disabled = false;
+        btn.textContent = "Pay Now →";
+        alert("Please select a payment method");
+    }
 }
 </script>
 {% endblock %}

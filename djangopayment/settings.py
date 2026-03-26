@@ -137,3 +137,6 @@ PAYUNIT_CONFIG = {
     "api_key": os.getenv("PAYUNIT_API_KEY"),
     "mode": os.getenv("PAYUNIT_MODE", "test"),  # "test" or "live"
 }
+
+
+MONEROO_SECRET_KEY = os.getenv("MONEROO_SECRET_KEY")
