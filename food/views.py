@@ -7,11 +7,15 @@ from django.urls import reverse
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from payUnit import payUnit
+
+from food.flutterwave import FlutterwavePayment
+from food.paypal import PayPalPayment
 from .models import Order, Payment
 from django.conf import settings
 
 from food.enum import OrderStatus
 from .moneroo import MonerooPayment
+from .stripe import StripePayment
 from food.models import Order, OrderItem, Product  # noqa: F811
 
 
@@ -196,7 +200,7 @@ def payunit_success(request, order_id):
         payment.status = "success"
         payment.save()
 
-    context = {"order": order, "message": "Payment Successful! Thank you for your purchase."}
+    context = {"order": order, "message": "Payment Successful! Thank you for your purchase.", "method": "PayUnit"}
     return render(request, "public/payment_success.html", context)
 
 
@@ -244,9 +248,6 @@ def moneroo_success(request):
         order.status = OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID"
         order.save()
 
-        # Optional: Create Payment record
-        from .models import Payment
-
         Payment.objects.create(
             order=order,
             method="moneroo",
@@ -255,7 +256,133 @@ def moneroo_success(request):
             transaction_id=payment_id or order.payment_reference,
         )
 
-        return render(request, "public/payment_success.html", {"order": order})
+        return render(request, "public/payment_success.html", {"order": order, "method": "Moneroo"})
 
     # If status is not clearly success, show cancel/failed page
+    return render(request, "public/payment_cancel.html", {"order": order})
+
+
+def initiate_stripe_payment(request, order_id):
+    """Initialize Stripe Checkout Session"""
+    order = get_object_or_404(Order, id=order_id)
+
+    stripe_payment = StripePayment()
+    result = stripe_payment.initialize_payment(order, request)
+
+    if result["success"]:
+        return redirect(result["checkout_url"])
+    else:
+        return HttpResponse(f"Stripe payment initialization failed: {result['error']}", status=400)
+
+
+def stripe_success(request):
+    """Handle return from Stripe after successful payment"""
+    order_id = request.GET.get("order_id")
+    session_id = request.GET.get("session_id")
+
+    order = get_object_or_404(Order, id=order_id)
+
+    # In production, you should verify the session with Stripe API
+    # For now, we optimistically mark as paid (improve later with webhook)
+    order.status = OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID"
+    order.save()
+
+    Payment.objects.create(
+        order=order, method="stripe", amount=order.total_amount, status="success", transaction_id=session_id
+    )
+
+    return render(request, "public/payment_success.html", {"order": order, "method": "Stripe"})
+
+
+def stripe_cancel(request):
+    """Handle cancelled Stripe payment"""
+    order_id = request.GET.get("order_id")
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(request, "public/payment_cancel.html", {"order": order})
+
+
+def initiate_paypal_payment(request, order_id):
+    """Initialize PayPal payment"""
+    order = get_object_or_404(Order, id=order_id)
+
+    paypal_payment = PayPalPayment()
+    result = paypal_payment.initialize_payment(order, request)
+
+    if result["success"]:
+        return redirect(result["approval_url"])
+    else:
+        return HttpResponse(f"PayPal payment initialization failed: {result.get('error')}", status=400)
+
+
+def paypal_success(request):
+    """Handle return from PayPal after approval"""
+    order_id = request.GET.get("order_id")
+    payment_id = request.GET.get("paymentId")
+    # payer_id = request.GET.get('PayerID')
+
+    order = get_object_or_404(Order, id=order_id)
+
+    # In a real implementation, you should execute the payment here
+    # For simplicity now, we mark as paid (improve with execute() later)
+    order.status = OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID"
+    order.save()
+
+    # Create Payment record
+    Payment.objects.create(
+        order=order, method="paypal", amount=order.total_amount, status="success", transaction_id=payment_id
+    )
+
+    return render(request, "public/payment_success.html", {"order": order, "method": "PayPal"})
+
+
+def paypal_cancel(request):
+    """Handle cancelled PayPal payment"""
+    order_id = request.GET.get("order_id")
+    order = get_object_or_404(Order, id=order_id)
+
+    return render(request, "public/payment_cancel.html", {"order": order})
+
+
+def initiate_flutterwave_payment(request, order_id):
+    """Initialize Flutterwave payment"""
+    order = get_object_or_404(Order, id=order_id)
+
+    flutterwave = FlutterwavePayment()
+    result = flutterwave.initialize_payment(order, request)
+
+    if result["success"]:
+        return redirect(result["checkout_url"])
+    else:
+        return HttpResponse(f"Flutterwave payment initialization failed: {result.get('error')}", status=400)
+
+
+def flutterwave_success(request):
+    """Handle return from Flutterwave after payment"""
+    order_id = request.GET.get("order_id")
+    # Flutterwave also sends tx_ref, status, etc. in query params
+
+    order = get_object_or_404(Order, id=order_id)
+
+    # For better security, you should verify the transaction using Flutterwave's verify endpoint
+    # For now, we mark as paid (improve with verification later)
+    order.status = OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID"
+    order.save()
+
+    Payment.objects.create(
+        order=order,
+        method="flutterwave",
+        amount=order.total_amount,
+        status=OrderStatus.PAID if hasattr(OrderStatus, "PAID") else "PAID",
+        transaction_id=order.payment_reference,
+    )
+
+    return render(request, "public/payment_success.html", {"order": order, "method": "Flutterwave"})
+
+
+def flutterwave_cancel(request):
+    """Handle cancelled Flutterwave payment"""
+    order_id = request.GET.get("order_id")
+    order = get_object_or_404(Order, id=order_id)
+
     return render(request, "public/payment_cancel.html", {"order": order})

@@ -138,5 +138,21 @@ PAYUNIT_CONFIG = {
     "mode": os.getenv("PAYUNIT_MODE", "test"),  # "test" or "live"
 }
 
-
+# Moneroo Settings
 MONEROO_SECRET_KEY = os.getenv("MONEROO_SECRET_KEY")
+
+# Stripe Settings
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+
+
+# PayPal Settings
+PAYPAL_CLIENT_ID = "AX9dZMxXDX0-6ksz5iFaKlvf7nolznpgTgoCnfJnxksHz54E52G-i1o0_Pq1mSq2IVKQn8v4vLI67Lou"
+PAYPAL_CLIENT_SECRET = "EGZZJFj2WSUD1xNlHyVaTl9k20_BVCrqffmKcuZX1Z_QNivBrmAKW3fjj4Iau8teZFIgNQ5qU_hmerSu"
+PAYPAL_MODE = "sandbox"
+
+
+# Flutterwave Settings
+FLUTTERWAVE_PUBLIC_KEY = os.getenv("FLUTTERWAVE_PUBLIC_KEY", "FLWPUBK_TEST-xxxxxxxxxxxxxxxxxxxxxxxx")
+FLUTTERWAVE_SECRET_KEY = os.getenv("FLUTTERWAVE_SECRET_KEY", "FLWSECK_TEST-xxxxxxxxxxxxxxxxxxxxxxxx")
+FLUTTERWAVE_PRODUCTION = os.getenv("FLUTTERWAVE_PRODUCTION", "False").lower() == "true"

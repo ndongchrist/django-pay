@@ -5,13 +5,19 @@ from food.views import (
     checkout_view,
     home,
     initiate_moneroo_payment,
+    initiate_paypal_payment,
     initiate_payunit_payment,
+    initiate_stripe_payment,
     moneroo_success,
+    paypal_cancel,
+    paypal_success,
     payunit_cancel,
     payunit_notify,
     payunit_success,
     process_checkout,
     product_detail,
+    stripe_cancel,
+    stripe_success,
 )
 
 urlpatterns = [
@@ -28,4 +34,12 @@ urlpatterns = [
     # moneroo related URLs
     path("moneroo/initiate/<int:order_id>/", initiate_moneroo_payment, name="moneroo_initiate"),
     path("moneroo/success/", moneroo_success, name="moneroo_success"),
+    # Stripe urls
+    path("stripe/initiate/<int:order_id>/", initiate_stripe_payment, name="stripe_initiate"),
+    path("stripe/success/", stripe_success, name="stripe_success"),
+    path("stripe/cancel/", stripe_cancel, name="stripe_cancel"),
+    # Paypal
+    path("paypal/initiate/<int:order_id>/", initiate_paypal_payment, name="paypal_initiate"),
+    path("paypal/success/", paypal_success, name="paypal_success"),
+    path("paypal/cancel/", paypal_cancel, name="paypal_cancel"),
 ]
