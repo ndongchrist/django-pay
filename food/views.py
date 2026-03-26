@@ -143,7 +143,7 @@ def initiate_payunit_payment(request, order_id):
     # For local development: Use ngrok (example below)
     # Replace with your actual ngrok URL when running
     base_url = (
-        "https://8813-2605-59c0-1e9e-a908-778c-c77f-9ce0-861d.ngrok-free.app"  # ← CHANGE THIS EVERY TIME NGROK RESTARTS
+        "https://219f-2605-59c0-1e9e-a908-9ee0-dcb4-c11-71c2.ngrok-free.app"  # ← CHANGE THIS EVERY TIME NGROK RESTARTS
     )
 
     success_url = base_url + reverse("payunit_success", args=[order.id])

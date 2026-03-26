@@ -3,7 +3,10 @@ from django.urls import path
 from food.views import (
     cart_view,
     checkout_view,
+    flutterwave_cancel,
+    flutterwave_success,
     home,
+    initiate_flutterwave_payment,
     initiate_moneroo_payment,
     initiate_paypal_payment,
     initiate_payunit_payment,
@@ -42,4 +45,8 @@ urlpatterns = [
     path("paypal/initiate/<int:order_id>/", initiate_paypal_payment, name="paypal_initiate"),
     path("paypal/success/", paypal_success, name="paypal_success"),
     path("paypal/cancel/", paypal_cancel, name="paypal_cancel"),
+    # Flutterwave
+    path("flutterwave/initiate/<int:order_id>/", initiate_flutterwave_payment, name="flutterwave_initiate"),
+    path("flutterwave/success/", flutterwave_success, name="flutterwave_success"),
+    path("flutterwave/cancel/", flutterwave_cancel, name="flutterwave_cancel"),
 ]

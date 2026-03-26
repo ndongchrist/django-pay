@@ -33,6 +33,14 @@
                 <h3 style="margin-bottom:1.5rem;">Choose Payment Method</h3>
                 
                 <div style="background:#f8f8f8; padding:2rem; border-radius:16px;">
+                    <!-- Flutterwave -->
+                    <label style="display:flex; align-items:center; gap:12px; padding:1rem; background:white; border-radius:12px; margin-bottom:1rem; cursor:pointer;">
+                        <input type="radio" name="payment_method" value="flutterwave" style="accent-color:#F5B81B;">
+                        <div>
+                            <strong>Flutterwave</strong><br>
+                            <small style="color:#666;">Mobile Money, Cards, Bank Transfer across Africa</small>
+                        </div>
+                    </label>
                     
                     <!-- PayUnit -->
                     <label style="display:flex; align-items:center; gap:12px; padding:1rem; background:white; border-radius:12px; margin-bottom:1rem; cursor:pointer;">
@@ -106,6 +114,8 @@ function initiatePayment(orderId) {
         url = "{% url 'stripe_initiate' 0 %}".replace('0', orderId);
     } else if (selectedMethod === "paypal") {
         url = "{% url 'paypal_initiate' 0 %}".replace('0', orderId);
+    } else if (selectedMethod === "flutterwave") {
+        url = "{% url 'flutterwave_initiate' 0 %}".replace('0', orderId);
     }
 
     if (url) {
