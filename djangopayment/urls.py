@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("food.urls")),
+    path("", include("django_prometheus.urls")),
 ]
 
 # Serve media files in development
