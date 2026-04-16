@@ -8,7 +8,7 @@ python manage.py makemigrations --merge
 python manage.py migrate --noinput
 
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear
 
 echo "Starting Gunicorn server..."
 exec gunicorn djangopayment.wsgi:application \

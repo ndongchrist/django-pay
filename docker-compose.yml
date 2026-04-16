@@ -7,6 +7,7 @@ services:
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
+      - media_volume:/app/media         # ← Add this for user uploads!
     env_file:
       - .env
     depends_on:
@@ -77,11 +78,27 @@ services:
       - app-network
     restart: always
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"  # cAdvisor UI (optional)
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro  # for disk stats
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   static_volume:
   prometheus-data:
   grafana-data:
+  media_volume:
   
 networks:
   app-network:

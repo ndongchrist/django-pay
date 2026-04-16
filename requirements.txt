@@ -12,3 +12,4 @@ stripe>=14.4.1
 psycopg2-binary
 gunicorn>=20.1.0
 django-prometheus
+whitenoise
