@@ -117,6 +117,58 @@ services:
       - '--storage.path=/alertmanager'
       - '--log.level=info'
 
+  # 🔴 PostgreSQL Exporter
+  postgres_exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:latest  # ✅ Correct!
+    container_name: postgres_exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}?sslmode=disable
+    ports:
+      - "9187:9187"
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9187/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🔴 Redis Exporter
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis_exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - redis
+
+  # 🔴 Node Exporter (Host metrics) - Linux only
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - "9110:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   static_volume:
