@@ -1,0 +1,95 @@
+# prometheus/alert_rules.yml
+groups:
+  - name: container_alerts
+    rules:
+      # 🔴 Container high CPU usage
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{image!=""}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.container }}"
+          description: "Container {{ $labels.container }} is using {{ $value }}% CPU for more than 5 minutes."
+
+      # 🔴 Container high memory usage
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes{image!=""} / container_spec_memory_limit_bytes{image!=""}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.container }}"
+          description: "Container {{ $labels.container }} is using {{ $value }}% of its memory limit."
+
+      # 🔴 Container restarted too often
+      - alert: ContainerFrequentRestarts
+        expr: increase(container_start_time_seconds{image!=""}[1h]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Container {{ $labels.container }} restarting frequently"
+          description: "Container has restarted {{ $value }} times in the last hour."
+
+  - name: django_app_alerts
+    rules:
+      # 🔴 Django app down (Prometheus target down)
+      - alert: DjangoAppDown
+        expr: up{job="payment_app"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: payment_app
+        annotations:
+          summary: "Django payment app is down"
+          description: "The payment_app target has been down for more than 2 minutes."
+
+      # 🔴 High HTTP 5xx error rate
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status=~"5..", job="payment_app"}[5m])) / sum(rate(http_requests_total{job="payment_app"}[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          service: payment_app
+        annotations:
+          summary: "High error rate on payment app"
+          description: "{{ $value }}% of requests are returning 5xx errors."
+
+      # 🔴 Slow response times (if using prometheus middleware)
+      - alert: SlowResponses
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="payment_app"}[5m])) by (le)) > 2
+        for: 10m
+        labels:
+          severity: warning
+          service: payment_app
+        annotations:
+          summary: "Slow responses on payment app"
+          description: "95th percentile response time is {{ $value }}s (threshold: 2s)."
+
+  - name: database_alerts
+    rules:
+      # 🔴 PostgreSQL down
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL instance is not responding."
+
+      # 🔴 Too many database connections
+      - alert: PostgresHighConnections
+        expr: pg_stat_activity_count / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "PostgreSQL connection pool nearly exhausted"
+          description: "{{ $value }}% of max connections are in use."
